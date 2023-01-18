@@ -91,21 +91,14 @@ struct ngx_event_s {
      *   write:      available space in buffer when event is ready
      *               or lowat when event is set with NGX_LOWAT_EVENT flag
      *
-     * epoll with EPOLLRDHUP:
-     *   accept:     1 if accept many, 0 otherwise
-     *   read:       1 if there can be data to read, 0 otherwise
-     *
      * iocp: TODO
      *
      * otherwise:
      *   accept:     1 if accept many, 0 otherwise
+     *   read:       bytes to read when event is ready, -1 if not known
      */
 
-#if (NGX_HAVE_KQUEUE) || (NGX_HAVE_IOCP)
     int              available;
-#else
-    unsigned         available:1;
-#endif
 
     ngx_event_handler_pt  handler;
 
@@ -153,10 +146,6 @@ struct ngx_event_aio_s {
     ngx_file_t                *file;
 
     ngx_fd_t                   fd;
-
-#if (NGX_HAVE_AIO_SENDFILE || NGX_COMPAT)
-    ssize_t                  (*preload_handler)(ngx_buf_t *file);
-#endif
 
 #if (NGX_HAVE_EVENTFD)
     int64_t                    res;
@@ -473,6 +462,7 @@ extern ngx_uint_t             ngx_accept_events;
 extern ngx_uint_t             ngx_accept_mutex_held;
 extern ngx_msec_t             ngx_accept_mutex_delay;
 extern ngx_int_t              ngx_accept_disabled;
+extern ngx_uint_t             ngx_use_exclusive_accept;
 
 
 #if (NGX_STAT_STUB)
